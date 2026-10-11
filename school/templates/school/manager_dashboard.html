@@ -1,0 +1,64 @@
+{% extends "school/base.html" %}
+{% block title %}لوحة المدير{% endblock %}
+{% block content %}
+<h2>لوحة المدير <small class="muted">- {{ today }}</small></h2>
+<p><a class="btn outline" href="{% url 'classroom_list' %}">الفصول</a></p>
+
+<div class="stats four">
+  <div class="stat"><b>{% if today_percent is not None %}{{ today_percent }}%{% else %}-{% endif %}</b><small>حضور النهاردة</small></div>
+  <div class="stat"><b>{{ a }}</b><small>غياب النهاردة</small></div>
+  <div class="stat"><b>{{ total_students }}</b><small>إجمالي الطلاب</small></div>
+  <div class="stat"><b>{{ total_classes }}</b><small>الفصول</small></div>
+</div>
+
+<div class="card">
+  <h3>الغايبين النهاردة</h3>
+  {% if total %}
+    {% if absent_today %}
+    <div class="table-wrap"><table>
+      <tr><th>الطالب</th><th>الفصل</th></tr>
+      {% for r in absent_today %}
+        <tr><td>{{ r.student.name }}</td><td>{{ r.student.classroom }}</td></tr>
+      {% endfor %}
+    </table></div>
+    {% else %}
+      <p class="muted">مفيش غياب النهاردة 🎉</p>
+    {% endif %}
+  {% else %}
+    <p class="muted">لسه مفيش حضور متسجل النهاردة.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>أكتر الطلاب غيابًا (آخر 30 يوم)</h3>
+  {% if top_absent %}
+  <div class="table-wrap"><table>
+    <tr><th>الطالب</th><th>الفصل</th><th class="c">أيام الغياب</th></tr>
+    {% for s in top_absent %}
+      <tr><td>{{ s.name }}</td><td>{{ s.classroom }}</td><td class="c"><span class="badge bad">{{ s.absences }}</span></td></tr>
+    {% endfor %}
+  </table></div>
+  {% else %}
+    <p class="muted">مفيش غياب مسجل.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>نسبة الحضور لكل فصل (آخر 30 يوم)</h3>
+  <div class="table-wrap"><table>
+    <tr><th>الفصل</th><th>المدرس</th><th class="c">الطلاب</th><th class="c">نسبة الحضور</th></tr>
+    {% for row in class_rows %}
+      <tr>
+        <td>{{ row.classroom.name }}</td>
+        <td>{% if row.classroom.teacher %}{{ row.classroom.teacher.get_full_name|default:row.classroom.teacher.username }}{% else %}-{% endif %}</td>
+        <td class="c">{{ row.classroom.students }}</td>
+        <td class="c">
+          {% if row.percent is not None %}
+            <span class="badge {% if row.percent >= 90 %}ok{% elif row.percent >= 75 %}warn{% else %}bad{% endif %}">{{ row.percent }}%</span>
+          {% else %}-{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "school/base.html" %}
+{% block title %}الفصول{% endblock %}
+{% block content %}
+<h2>الفصول</h2>
+<div class="grid">
+  {% for c in classrooms %}
+    <a class="tile" href="{% url 'take_attendance' c.id %}">
+      🏫 {{ c.name }}
+      <br>
+      <small class="muted">{{ c.student_set.count }} طالب</small>
+      {% if user.is_staff %}
+        <br>
+        <small class="muted">
+          {% if c.teacher %}{{ c.teacher.get_full_name|default:c.teacher.username }}{% else %}بدون مدرس{% endif %}
+        </small>
+      {% endif %}
+    </a>
+  {% empty %}
+    <div class="card" style="grid-column:1/-1">
+      <p class="muted">
+        {% if user.is_staff %}
+          مفيش فصول لسه. أضيفي فصل من لوحة الإدارة.
+        {% else %}
+          مفيش فصول مربوطة بحسابك. كلمي المدير عشان يربطك بفصولك.
+        {% endif %}
+      </p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

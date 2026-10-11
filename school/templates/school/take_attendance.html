@@ -1,0 +1,54 @@
+{% extends "school/base.html" %}
+{% block title %}حضور {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>حضور فصل {{ classroom.name }}</h2>
+  <p>
+    <a class="btn outline" href="{% url 'add_grades' classroom.id %}">إدخال درجات</a>
+    <a class="btn outline" href="{% url 'classroom_list' %}">كل الفصول</a>
+    {% if user.is_staff %}
+      <a class="btn outline" href="{% url 'export_attendance' classroom.id %}">تقرير الشهر (Excel)</a>
+    {% endif %}
+  </p>
+
+  {% if already_saved %}
+    <div class="alert success">الحضور متسجل لهذا اليوم قبل كده. الحفظ هيعدّله.</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+      <label>التاريخ
+        <input type="date" name="date" value="{{ today }}" required
+               onchange="location.href='?date=' + this.value">
+      </label>
+    </div>
+
+    {% if rows %}
+    <p><button type="button" class="btn outline" onclick="markAll('P')">الكل حاضر</button></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>الطالب</th><th class="c">حاضر</th><th class="c">غائب</th><th class="c">متأخر</th></tr>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.student.name }}</td>
+          <td class="c"><input type="radio" name="status_{{ r.student.id }}" value="P" {% if r.status == 'P' %}checked{% endif %}></td>
+          <td class="c"><input type="radio" name="status_{{ r.student.id }}" value="A" {% if r.status == 'A' %}checked{% endif %}></td>
+          <td class="c"><input type="radio" name="status_{{ r.student.id }}" value="L" {% if r.status == 'L' %}checked{% endif %}></td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <br><button class="btn" type="submit">حفظ الحضور</button>
+    {% else %}
+      <p class="muted">مفيش طلاب في الفصل ده. أضيفيهم من لوحة الإدارة.</p>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+function markAll(v) {
+  document.querySelectorAll('input[type=radio][value=' + v + ']').forEach(function (r) { r.checked = true; });
+}
+</script>
+{% endblock %}

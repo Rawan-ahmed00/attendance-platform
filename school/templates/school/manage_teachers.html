@@ -1,0 +1,36 @@
+{% extends "school/base.html" %}
+{% block title %}المدرسين{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>المدرسين</h2>
+  {% if teachers %}
+  <div class="table-wrap"><table>
+    <tr><th>الاسم</th><th>اسم المستخدم</th><th>الفصول</th></tr>
+    {% for t in teachers %}
+      <tr>
+        <td>{{ t.get_full_name|default:"-" }}</td>
+        <td dir="ltr">{{ t.username }}</td>
+        <td>{% for c in t.classrooms.all %}{{ c.name }}{% if not forloop.last %}، {% endif %}{% empty %}-{% endfor %}</td>
+      </tr>
+    {% endfor %}
+  </table></div>
+  {% else %}
+    <p class="muted">مفيش مدرسين لسه.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>إضافة مدرس</h3>
+  <form method="post">
+    {% csrf_token %}
+    {% for f in form %}
+      <div class="form-row" style="flex-direction:column;margin-bottom:10px">
+        <label>{{ f.label }} {{ f }}</label>
+        {% for e in f.errors %}<div class="alert error">{{ e }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <p class="muted">لو اخترتي فصل مربوط بمدرس تاني، هيتنقل للمدرس الجديد.</p>
+    <button class="btn" type="submit">إضافة</button>
+  </form>
+</div>
+{% endblock %}

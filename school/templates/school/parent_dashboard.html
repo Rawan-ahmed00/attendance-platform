@@ -1,0 +1,101 @@
+{% extends "school/base.html" %}
+{% load static %}
+{% block title %}متابعة أبنائي{% endblock %}
+{% block content %}
+{% for c in children %}
+<div class="card">
+  <h2>{{ c.student.name }} <small class="muted">- {{ c.student.classroom }}</small></h2>
+
+  <div class="stats">
+    <div class="stat"><b>{% if c.percent is not None %}{{ c.percent }}%{% else %}-{% endif %}</b><small>نسبة الحضور</small></div>
+    <div class="stat"><b>{{ c.absent }}</b><small>أيام الغياب</small></div>
+    <div class="stat"><b>{% if c.avg is not None %}{{ c.avg }}%{% else %}-{% endif %}</b><small>متوسط الدرجات</small></div>
+  </div>
+
+  {% if c.level %}
+    <p>المستوى:
+      <span class="badge {% if c.level == 'ممتاز' %}ok{% elif c.level == 'جيد' %}warn{% else %}bad{% endif %}">{{ c.level }}</span>
+    </p>
+  {% endif %}
+
+  {% if c.avg is not None or c.percent is not None %}
+  <div class="chart-box" data-chart="{{ c.chart_json }}">
+    <div class="charts" style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div style="position:relative;height:240px"><canvas class="bar"></canvas></div>
+      <div style="position:relative;height:240px"><canvas class="pie"></canvas></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <h3 style="margin-top:20px">آخر أيام الحضور</h3>
+  {% if c.percent is not None %}
+    <div class="table-wrap"><table>
+      <tr><th>التاريخ</th><th>الحالة</th></tr>
+      {% for r in c.records %}
+        <tr><td>{{ r.date }}</td><td><span class="badge b-{{ r.status }}">{{ r.get_status_display }}</span></td></tr>
+      {% endfor %}
+    </table></div>
+  {% else %}
+    <p class="muted">لسه مفيش حضور متسجل.</p>
+  {% endif %}
+
+  <h3 style="margin-top:20px">الدرجات</h3>
+  {% if c.avg is not None %}
+    <div class="table-wrap"><table>
+      <tr><th>المادة</th><th>الدرجة</th><th>النسبة</th></tr>
+      {% for g in c.grades %}
+        <tr><td>{{ g.subject }}</td><td>{{ g.score }} / {{ g.max_score }}</td><td>{{ g.percent }}%</td></tr>
+      {% endfor %}
+    </table></div>
+  {% else %}
+    <p class="muted">لسه مفيش درجات.</p>
+  {% endif %}
+</div>
+{% empty %}
+  <div class="card"><p class="muted">مفيش طلاب مرتبطين بحسابك.</p></div>
+{% endfor %}
+
+<script src="{% static 'school/js/chart.umd.js' %}"></script>
+<script>
+document.querySelectorAll('.chart-box').forEach(function (box) {
+  try {
+    if (typeof Chart === 'undefined') {
+      throw new Error('مكتبة الرسوم لم تتحمل');
+    }
+    var d = JSON.parse(box.dataset.chart);
+    Chart.defaults.font.family = 'Cairo, Tahoma, sans-serif';
+
+    new Chart(box.querySelector('.bar'), {
+      type: 'bar',
+      data: {
+        labels: d.labels,
+        datasets: [{ label: 'النسبة %', data: d.scores,
+                     backgroundColor: '#2563eb', borderRadius: 6 }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: { y: { min: 0, max: 100 } },
+        plugins: { legend: { display: false },
+                   title: { display: true, text: 'نسب الدرجات' } }
+      }
+    });
+
+    new Chart(box.querySelector('.pie'), {
+      type: 'doughnut',
+      data: {
+        labels: ['حاضر', 'غائب', 'متأخر'],
+        datasets: [{ data: d.att,
+                     backgroundColor: ['#16a34a', '#dc2626', '#d97706'] }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'الحضور' } }
+      }
+    });
+  } catch (e) {
+    box.innerHTML = '<p class="muted">تعذر عرض الرسم: ' + e.message + '</p>';
+    console.error(e);
+  }
+});
+</script>
+{% endblock %}

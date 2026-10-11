@@ -1,0 +1,28 @@
+{% extends "school/base.html" %}
+{% block title %}درجات {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>إدخال درجات فصل {{ classroom.name }}</h2>
+  <p><a class="btn outline" href="{% url 'take_attendance' classroom.id %}">رجوع للحضور</a></p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+      <label>المادة <input type="text" name="subject" required></label>
+      <label>الدرجة النهائية <input type="number" name="max_score" value="100" step="0.01" min="1"></label>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>الطالب</th><th>الدرجة</th></tr>
+        {% for s in students %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td><input type="number" name="score_{{ s.id }}" step="0.01" min="0"></td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <br><button class="btn" type="submit">حفظ الدرجات</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "school/base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+{% block content %}
+<div class="card" style="max-width:380px;margin:40px auto">
+  <h2>تسجيل الدخول</h2>
+  {% if form.errors %}
+    <div class="alert error">اسم المستخدم أو كلمة المرور غلط</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="form-row" style="flex-direction:column">
+      <label>اسم المستخدم <input type="text" name="username" required autofocus></label>
+      <label>كلمة المرور <input type="password" name="password" required></label>
+    </div>
+    <button class="btn" type="submit" style="width:100%">دخول</button>
+  </form>
+</div>
+{% endblock %}
